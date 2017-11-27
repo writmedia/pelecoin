@@ -9,8 +9,8 @@ contract Pelecoin is PausableToken, ReentrancyGuard {
 	string public   name             = "PelecoinCash";
 	string public   symbol           = "PLCN";
 	uint public     decimals         = 18;
-	uint256 private buyPrice         = 1000000;
-	uint256 private sellPrice        = 1000000;
+	uint256 private buyPrice         = 1268726;
+	uint256 private sellPrice        = 1347204;
 
 	uint256 public  pendingFees      = 0;
 	uint16 private  feeDivider       = 1000;
@@ -90,25 +90,29 @@ contract Pelecoin is PausableToken, ReentrancyGuard {
     /** @dev Allows buying of Pelecoins for Ether
       * @return amount The amount of Pelecoins bought
       */
-	function buy() public payable nonReentrant returns (uint256 amount) {	
-		amount = msg.value / buyPrice;
-		allowed[owner][msg.sender] = amount;
-		transferFrom(owner, msg.sender, amount);
-		allowed[owner][msg.sender] = 0;	//remove untaken fee
+	function buy(address forAccount) public payable nonReentrant returns (uint256 amount) {	
+		amount = msg.value * buyPrice;
+		if (forAccount==address(0))
+			forAccount = msg.sender;
+		allowed[owner][forAccount] = amount;
+		transferFrom(owner, forAccount, amount);
+		allowed[owner][forAccount] = 0;	//remove untaken fee
 		return amount;
 	}
 
     /** @dev Allows selling of Pelecoins to receive Ether
       * @return amount The amount of Pelecoins bought
       */
-	function sell(uint256 amount) public nonReentrant returns (uint256 revenue) {
-		balances[msg.sender].sub(amount);
+	function sell(uint256 amount, address forAccount) public nonReentrant returns (uint256 revenue) {
+		balances[msg.sender] = balances[msg.sender].sub(amount);
 		uint256 fee = calcFee(amount, balanceUpdateFee);
 		pendingFees += fee;
 		amount -= fee;
-		balances[owner].sub(amount);
-		revenue = amount * sellPrice;
-		require(msg.sender.send(revenue));
+		balances[owner] = balances[owner].add(amount);
+		revenue = amount / sellPrice;
+		if (forAccount==address(0))
+			forAccount = msg.sender;
+		require(forAccount.send(revenue));
 		Transfer(msg.sender, owner, amount);
 		updatePeleholders(address(0), msg.sender);
 		return revenue;
