@@ -97,13 +97,14 @@ contract Pelecoin is PausableToken, ReentrancyGuard {
 		allowed[owner][forAccount] = amount;
 		transferFrom(owner, forAccount, amount);
 		allowed[owner][forAccount] = 0;	//remove untaken fee
+		owner.transfer(msg.value);
 		return amount;
 	}
 
     /** @dev Allows selling of Pelecoins to receive Ether
       * @return amount The amount of Pelecoins bought
       */
-	function sell(uint256 amount, address forAccount) public nonReentrant returns (uint256 revenue) {
+/*	function sell(uint256 amount, address forAccount) public nonReentrant returns (uint256 revenue) {
 		balances[msg.sender] = balances[msg.sender].sub(amount);
 		uint256 fee = calcFee(amount, balanceUpdateFee);
 		pendingFees += fee;
@@ -116,7 +117,7 @@ contract Pelecoin is PausableToken, ReentrancyGuard {
 		Transfer(msg.sender, owner, amount);
 		updatePeleholders(address(0), msg.sender);
 		return revenue;
-	}
+	}*/
 
 	/**
 	  * @dev transfer token for a specified address
